@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Orbit Ops turns operating problems into executable systems: SOPs, priorities, capacity plans, controls, runbooks, and updates." />
+    <meta name="theme-color" content="#111310" />
+    <title>Orbit Ops — Operations Control Agent</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23111310'/%3E%3Cpath d='M14 16h36v9H14zm0 14h27v9H14zm0 14h36v9H14z' fill='%23ff6b2c'/%3E%3Cpath d='m44 31 4 4 8-9' fill='none' stroke='%23c4f341' stroke-width='5'/%3E%3C/svg%3E" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="#top" aria-label="Orbit Ops home">
+        <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span>ORBIT <b>OPS</b></span>
+      </a>
+      <div class="topbar-center"><span class="pulse"></span> CONTROL ROOM <span id="clock">LOCAL</span></div>
+      <div class="top-actions">
+        <label class="text-button import-label" for="import-file">Import</label>
+        <input id="import-file" type="file" accept="application/json,.json" hidden />
+        <button class="text-button" id="export-menu-button" type="button" aria-expanded="false">Export ▾</button>
+        <div class="export-menu" id="export-menu" hidden>
+          <button type="button" data-export="markdown">Markdown plan</button>
+          <button type="button" data-export="workspace">Workspace JSON</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="workspace" id="top">
+      <aside class="intake-panel" aria-label="Operations intake">
+        <div class="panel-heading">
+          <span class="eyebrow">01 / FRAME</span>
+          <h1>Turn friction into a working system.</h1>
+          <p>Describe the operation. Orbit will build the brief, SOP, priorities, capacity model, controls, runbook, and leadership update.</p>
+        </div>
+
+        <div class="sample-row" aria-label="Example operating scenarios">
+          <button type="button" data-sample="backlog">Order backlog</button>
+          <button type="button" data-sample="incident">Incident recovery</button>
+          <button type="button" data-sample="audit">Audit readiness</button>
+        </div>
+
+        <form id="ops-form" novalidate>
+          <div class="field-row">
+            <label class="field">
+              <span>Process</span>
+              <input name="process" maxlength="140" placeholder="e.g. Order fulfillment" required />
+            </label>
+            <label class="field field-mode">
+              <span>Mode</span>
+              <select name="mode">
+                <option value="stabilize">Stabilize</option>
+                <option value="standardize">Standardize</option>
+                <option value="scale">Scale</option>
+                <option value="incident">Incident</option>
+                <option value="audit">Audit</option>
+              </select>
+            </label>
+          </div>
+          <label class="field">
+            <span>What is happening?</span>
+            <textarea name="situation" rows="5" maxlength="3000" placeholder="Describe the failure, where it appears, who it affects, and what is known…" required></textarea>
+          </label>
+          <label class="field">
+            <span>Required operating outcome</span>
+            <textarea name="outcome" rows="2" maxlength="1000" placeholder="What measurable state must be true?" required></textarea>
+          </label>
+          <details class="context-details">
+            <summary>Operating context <span>owner, volume, evidence, constraints</span></summary>
+            <label class="field"><span>Accountable owner</span><input name="owner" maxlength="240" placeholder="Name, role, or team" /></label>
+            <label class="field"><span>Demand / volume</span><textarea name="volume" rows="2" maxlength="1000" placeholder="Arrival pattern, queue size, touch time, seasonality…"></textarea></label>
+            <label class="field"><span>Evidence</span><textarea name="evidence" rows="3" maxlength="2000" placeholder="Metrics, incident facts, operator observations, customer impact…"></textarea></label>
+            <label class="field"><span>Constraints</span><textarea name="constraints" rows="2" maxlength="1600" placeholder="Systems, policies, vendors, budget, staffing…"></textarea></label>
+            <label class="field"><span>Target date</span><input name="targetDate" maxlength="140" placeholder="e.g. Stable before peak week" /></label>
+          </details>
+          <p id="form-error" class="form-error" role="alert" hidden></p>
+          <button class="run-button" type="submit"><span>Build operating system</span><b aria-hidden="true">→</b></button>
+          <p class="privacy-note"><span>●</span> Runs locally in your browser. No operational data is sent to a server.</p>
+        </form>
+
+        <section class="history" aria-labelledby="history-title">
+          <div class="section-label"><span id="history-title">RECENT RUNS</span><button id="clear-history" type="button">Clear</button></div>
+          <div id="history-list"></div>
+        </section>
+      </aside>
+
+      <section class="output-panel" id="output" aria-live="polite">
+        <div class="empty-state" id="empty-state">
+          <div class="empty-grid" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span></div>
+          <span class="eyebrow">02 / OPERATE</span>
+          <h2>Build the operating system.</h2>
+          <p>A complete plan will appear here—ordered by risk, evidence, and execution sequence.</p>
+          <div class="empty-metrics">
+            <div><b>7</b><span>SOP stages</span></div>
+            <div><b>8+</b><span>ranked actions</span></div>
+            <div><b>3</b><span>capacity states</span></div>
+          </div>
+        </div>
+
+        <article class="plan-view" id="plan-view" hidden>
+          <header class="plan-header">
+            <div><span class="eyebrow" id="plan-kicker">Operating brief</span><h2 id="plan-title"></h2></div>
+            <span class="status-chip" id="plan-status"></span>
+          </header>
+          <div id="artifact-content"></div>
+        </article>
+      </section>
+
+      <nav class="artifact-rail" id="artifact-nav" aria-label="Operations artifacts">
+        <span class="rail-label">OUTPUTS</span>
+        <button class="active" type="button" data-view="brief" disabled><span>01</span> Situation</button>
+        <button type="button" data-view="sop" disabled><span>02</span> SOP</button>
+        <button type="button" data-view="actions" disabled><span>03</span> Actions</button>
+        <button type="button" data-view="capacity" disabled><span>04</span> Capacity</button>
+        <button type="button" data-view="controls" disabled><span>05</span> Controls</button>
+        <button type="button" data-view="runbook" disabled><span>06</span> Runbook</button>
+        <button type="button" data-view="update" disabled><span>07</span> Update</button>
+        <div class="rail-key"><i></i><span>Control active</span></div>
+      </nav>
+    </main>
+
+    <div class="toast" id="toast" role="status" hidden></div>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
